@@ -14,12 +14,13 @@
   </tr>
 </table>
 
-Get Google search results, but without any ads, javascript, AMP links, cookies, or IP address tracking. Easily deployable in one click as a Docker app, and customizable with a single config file. Quick and simple to implement as a primary search engine replacement on both desktop and mobile.
+Get Google search results, but without any ads, JavaScript, AMP links, cookies, or IP address tracking. Easily deployable in one click as a Docker app, and customizable with a single config file. Quick and simple to implement as a primary search engine replacement on both desktop and mobile.
 
 Contents
 1. [Features](#features)
 3. [Install/Deploy Options](#install)
     1. [Heroku Quick Deploy](#heroku-quick-deploy)
+    1. [Render.com](#render)
     1. [Repl.it](#replit)
     1. [Fly.io](#flyio)
     1. [Koyeb](#koyeb)
@@ -33,10 +34,12 @@ Contents
 5. [Usage](#usage)
 6. [Extra Steps](#extra-steps)
     1. [Set Primary Search Engine](#set-whoogle-as-your-primary-search-engine)
-    2. [Prevent Downtime (Heroku Only)](#prevent-downtime-heroku-only)
-    3. [Manual HTTPS Enforcement](#https-enforcement)
-    4. [Using with Firefox Containers](#using-with-firefox-containers)
-    5. [Reverse Proxying](#reverse-proxying)
+	2. [Custom Redirecting](#custom-redirecting)
+	2. [Custom Bangs](#custom-bangs)
+    3. [Prevent Downtime (Heroku Only)](#prevent-downtime-heroku-only)
+    4. [Manual HTTPS Enforcement](#https-enforcement)
+    5. [Using with Firefox Containers](#using-with-firefox-containers)
+    6. [Reverse Proxying](#reverse-proxying)
         1. [Nginx](#nginx)
 7. [Contributing](#contributing)
 8. [FAQ](#faq)
@@ -59,6 +62,7 @@ Contents
 - Randomly generated User Agent
 - Easy to install/deploy
 - DDG-style bang (i.e. `!<tag> <query>`) searches
+- User-defined [custom bangs](#custom-bangs)
 - Optional location-based searching (i.e. results near \<city\>)
 - Optional NoJS mode to view search results in a separate window with JavaScript blocked
 
@@ -86,6 +90,16 @@ Notes:
 
 ___
 
+### [Render](https://render.com)
+
+Create an account on [render.com](https://render.com) and import the Whoogle repo with the following settings:
+
+- Runtime: `Python 3`
+- Build Command: `pip install -r requirements.txt`
+- Run Command: `./run`
+
+___
+
 ### [Repl.it](https://repl.it)
 [![Run on Repl.it](https://repl.it/badge/github/benbusby/whoogle-search)](https://repl.it/github/benbusby/whoogle-search)
 
@@ -95,13 +109,13 @@ Provides:
 - Free deployment of app
 - Free HTTPS url (https://\<app name\>.\<username\>\.repl\.co)
     - Supports custom domains
-- Downtime after periods of inactivity \([solution 1](https://repl.it/talk/ask/use-this-pingmat1replco-just-enter/28821/101298), [solution 2](https://repl.it/talk/learn/How-to-use-and-setup-UptimeRobot/9003)\)
+- Downtime after periods of inactivity ([solution](https://repl.it/talk/learn/How-to-use-and-setup-UptimeRobot/9003)\)
 
 ___
 
 ### [Fly.io](https://fly.io)
 
-You will need a **PAID** [Fly.io](https://fly.io) account to deploy Whoogle.
+You will need a [Fly.io](https://fly.io) account to deploy Whoogle. The [free allowances](https://fly.io/docs/about/pricing/#free-allowances) are enough for personal use.
 
 #### Install the CLI: https://fly.io/docs/hands-on/installing/
 
@@ -233,6 +247,7 @@ ExecStart=<python_install_dir>/python3 <whoogle_install_dir>/whoogle-search --ho
 ExecStart=<whoogle_repo_dir>/run
 # For example:
 # ExecStart=/var/www/whoogle-search/run
+WorkingDirectory=<whoogle_repo_dir>
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=3
@@ -398,6 +413,10 @@ There are a few optional environment variables available for customizing a Whoog
 | WHOOGLE_PROXY_PASS   | The password of the proxy server.                                                         |
 | WHOOGLE_PROXY_TYPE   | The type of the proxy server. Can be "socks5", "socks4", or "http".                       |
 | WHOOGLE_PROXY_LOC    | The location of the proxy server (host or ip).                                            |
+| WHOOGLE_USER_AGENT   | The desktop user agent to use. Defaults to a randomly generated one.                      |
+| WHOOGLE_USER_AGENT_MOBILE | The mobile user agent to use. Defaults to a randomly generated one.                  |
+| WHOOGLE_USE_CLIENT_USER_AGENT | Enable to use your own user agent for all requests. Defaults to false.           |
+| WHOOGLE_REDIRECTS    | Specify sites that should be redirected elsewhere. See [custom redirecting](#custom-redirecting). |
 | EXPOSE_PORT          | The port where Whoogle will be exposed.                                                   |
 | HTTPS_ONLY           | Enforce HTTPS. (See [here](https://github.com/benbusby/whoogle-search#https-enforcement)) |
 | WHOOGLE_ALT_TW       | The twitter.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
@@ -406,7 +425,7 @@ There are a few optional environment variables available for customizing a Whoog
 | WHOOGLE_ALT_TL       | The Google Translate alternative to use. This is used for all "translate ____" searches.  Set to "" to disable. |
 | WHOOGLE_ALT_MD       | The medium.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
 | WHOOGLE_ALT_IMG      | The imgur.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
-| WHOOGLE_ALT_WIKI     | The wikipedia.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
+| WHOOGLE_ALT_WIKI     | The wikipedia.org alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
 | WHOOGLE_ALT_IMDB     | The imdb.com alternative to use when site alternatives are enabled in the config. Set to "" to disable.  |
 | WHOOGLE_ALT_QUORA    | The quora.com alternative to use when site alternatives are enabled in the config. Set to "" to disable. |
 | WHOOGLE_AUTOCOMPLETE | Controls visibility of autocomplete/search suggestions. Default on -- use '0' to disable. |
@@ -416,6 +435,8 @@ There are a few optional environment variables available for customizing a Whoog
 | WHOOGLE_TOR_SERVICE  | Enable/disable the Tor service on startup. Default on -- use '0' to disable.              |
 | WHOOGLE_TOR_USE_PASS | Use password authentication for tor control port. |
 | WHOOGLE_TOR_CONF | The absolute path to the config file containing the password for the tor control port. Default: ./misc/tor/control.conf WHOOGLE_TOR_PASS must be 1 for this to work.|
+| WHOOGLE_SHOW_FAVICONS | Show/hide favicons next to search result URLs. Default on.                               |
+| WHOOGLE_UPDATE_CHECK  | Enable/disable the automatic daily check for new versions of Whoogle. Default on.        |
 
 ### Config Environment Variables
 These environment variables allow setting default config values, but can be overwritten manually by using the home page config menu. These allow a shortcut for destroying/rebuilding an instance to the same config state every time.
@@ -441,6 +462,7 @@ These environment variables allow setting default config values, but can be over
 | WHOOGLE_CONFIG_STYLE                 | The custom CSS to use for styling (should be single line)       |
 | WHOOGLE_CONFIG_PREFERENCES_ENCRYPTED | Encrypt preferences token, requires preferences key             |
 | WHOOGLE_CONFIG_PREFERENCES_KEY       | Key to encrypt preferences in URL (REQUIRED to show url)        |
+| WHOOGLE_CONFIG_ANON_VIEW             | Include the "anonymous view" option for each search result      |
 
 ## Usage
 Same as most search engines, with the exception of filtering by time range.
@@ -448,6 +470,7 @@ Same as most search engines, with the exception of filtering by time range.
 To filter by a range of time, append ":past <time>" to the end of your search, where <time> can be `hour`, `day`, `month`, or `year`. Example: `coronavirus updates :past hour`
 
 ## Extra Steps
+
 ### Set Whoogle as your primary search engine
 *Note: If you're using a reverse proxy to run Whoogle Search, make sure the "Root URL" config option on the home page is set to your URL before going through these steps.*
 
@@ -491,6 +514,40 @@ Browser settings:
       - Visit the home page of your Whoogle Search instance -- this will automatically add the search engine if the [requirements](https://www.chromium.org/tab-to-search/) are met (GET request, no OnSubmit script, no path). If not, you can add it manually.
     - Manual
       - Under search engines > manage search engines > add, manually enter your Whoogle instance details with a `<whoogle url>/search?q=%s` formatted search URL.
+
+### Custom Redirecting
+You can set custom site redirects using the `WHOOGLE_REDIRECTS` environment
+variable. A lot of sites, such as Twitter, Reddit, etc, have built-in redirects
+to [Farside links](https://sr.ht/~benbusby/farside), but you may want to define
+your own.
+
+To do this, you can use the following syntax:
+
+```
+WHOOGLE_REDIRECTS="<parent_domain>:<new_domain>"
+```
+
+For example, if you want to redirect from "badsite.com" to "goodsite.com":
+
+```
+WHOOGLE_REDIRECTS="badsite.com:goodsite.com"
+```
+
+This can be used for multiple sites as well, with comma separation:
+
+```
+WHOOGLE_REDIRECTS="badA.com:goodA.com,badB.com:goodB.com"
+```
+
+NOTE: Do not include "http(s)://" when defining your redirect.
+
+### Custom Bangs
+You can create your own custom bangs. By default, bangs are stored in 
+`app/static/bangs`. See [`00-whoogle.json`](https://github.com/benbusby/whoogle-search/blob/main/app/static/bangs/00-whoogle.json)
+for an example. These are parsed in alphabetical order with later files
+overriding bangs set in earlier files, with the exception that DDG bangs
+(downloaded to `app/static/bangs/bangs.json`) are always parsed first. Thus,
+any custom bangs will always override the DDG ones.
 
 ### Prevent Downtime (Heroku only)
 Part of the deal with Heroku's free tier is that you're allocated 550 hours/month (meaning it can't stay active 24/7), and the app is temporarily shut down after 30 minutes of inactivity. Once it becomes inactive, any Whoogle searches will still work, but it'll take an extra 10-15 seconds for the app to come back online before displaying the result, which can be frustrating if you're in a hurry.
@@ -568,7 +625,7 @@ Under the hood, Whoogle is a basic Flask app with the following structure:
     - `opensearch.xml`: A template used for supporting [OpenSearch](https://developer.mozilla.org/en-US/docs/Web/OpenSearch).
     - `imageresults.html`: An "experimental" template used for supporting the "Full Size" image feature on desktop.
   - `static/<css|js>`
-    - CSS/Javascript files, should be self-explanatory
+    - CSS/JavaScript files, should be self-explanatory
   - `static/settings`
     - Key-value JSON files for establishing valid configuration values
 
@@ -607,7 +664,7 @@ I'm a huge fan of Searx though and encourage anyone to use that instead if they 
 
 **Why does the image results page look different?**
 
-A lot of the app currently piggybacks on Google's existing support for fetching results pages with Javascript disabled. To their credit, they've done an excellent job with styling pages, but it seems that the image results page - particularly on mobile - is a little rough. Moving forward, with enough interest, I'd like to transition to fetching the results and parsing them into a unique Whoogle-fied interface that I can style myself.
+A lot of the app currently piggybacks on Google's existing support for fetching results pages with JavaScript disabled. To their credit, they've done an excellent job with styling pages, but it seems that the image results page - particularly on mobile - is a little rough. Moving forward, with enough interest, I'd like to transition to fetching the results and parsing them into a unique Whoogle-fied interface that I can style myself.
 
 ## Public Instances
 
@@ -621,17 +678,21 @@ A lot of the app currently piggybacks on Google's existing support for fetching 
 | [https://s.tokhmi.xyz](https://s.tokhmi.xyz) | 🇺🇸 US | Multi-choice | ✅ |
 | [https://search.sethforprivacy.com](https://search.sethforprivacy.com) | 🇩🇪 DE | English | |
 | [https://whoogle.dcs0.hu](https://whoogle.dcs0.hu) | 🇭🇺 HU | Multi-choice | |
-| [https://whoogle.esmailelbob.xyz](https://whoogle.esmailelbob.xyz) | 🇨🇦 CA | Multi-choice | |
 | [https://gowogle.voring.me](https://gowogle.voring.me) | 🇺🇸 US | Multi-choice | |
-| [https://whoogle.privacydev.net](https://whoogle.privacydev.net) | 🇳🇱 NL | English | |
+| [https://whoogle.privacydev.net](https://whoogle.privacydev.net) | 🇫🇷 FR | English | |
 | [https://wg.vern.cc](https://wg.vern.cc) | 🇺🇸 US | English |  |
 | [https://whoogle.hxvy0.gq](https://whoogle.hxvy0.gq) | 🇨🇦 CA | Turkish Only | ✅ |
 | [https://whoogle.hostux.net](https://whoogle.hostux.net) | 🇫🇷 FR | Multi-choice | |
 | [https://whoogle.lunar.icu](https://whoogle.lunar.icu) | 🇩🇪 DE | Multi-choice | ✅ |
 | [https://wgl.frail.duckdns.org](https://wgl.frail.duckdns.org) | 🇧🇷 BR | Multi-choice | |
-| [https://whoogle.no-logs.com/)(https://whoogle.no-logs.com/) | 🇸🇪 SE | Multi-choice | |
-| [https://search.rubberverse.xyz](https://search.rubberverse.xyz) | 🇵🇱 PL | English | |
-| [https://whoogle.link](https://whoogle.link) | 🇩🇪 DE | Multi-choice | |
+| [https://whoogle.no-logs.com](https://whoogle.no-logs.com/) | 🇸🇪 SE | Multi-choice | |
+| [https://whoogle.ftw.lol](https://whoogle.ftw.lol) | 🇩🇪 DE | Multi-choice | |
+| [https://whoogle-search--replitcomreside.repl.co](https://whoogle-search--replitcomreside.repl.co) | 🇺🇸 US | English |  |
+| [https://search.notrustverify.ch](https://search.notrustverify.ch) | 🇨🇭 CH | Multi-choice |  |
+| [https://whoogle.datura.network](https://whoogle.datura.network) | 🇩🇪 DE | Multi-choice | |
+| [https://whoogle.yepserver.xyz](https://whoogle.yepserver.xyz) | 🇺🇦 UA | Multi-choice | |
+| [https://search.nezumi.party](https://search.nezumi.party) | 🇮🇹 IT | Multi-choice | |
+| [https://search.snine.nl](https://search.snine.nl) | 🇳🇱 NL | Mult-choice | ✅ |
 
 
 * A checkmark in the "Cloudflare" category here refers to the use of the reverse proxy, [Cloudflare](https://cloudflare.com). The checkmark will not be listed for a site which uses Cloudflare DNS but rather the proxying service which grants Cloudflare the ability to monitor traffic to the website.
@@ -643,7 +704,8 @@ A lot of the app currently piggybacks on Google's existing support for fetching 
 | [http://whoglqjdkgt2an4tdepberwqz3hk7tjo4kqgdnuj77rt7nshw2xqhqad.onion](http://whoglqjdkgt2an4tdepberwqz3hk7tjo4kqgdnuj77rt7nshw2xqhqad.onion) | 🇺🇸 US |  Multi-choice
 | [http://nuifgsnbb2mcyza74o7illtqmuaqbwu4flam3cdmsrnudwcmkqur37qd.onion](http://nuifgsnbb2mcyza74o7illtqmuaqbwu4flam3cdmsrnudwcmkqur37qd.onion) | 🇩🇪 DE |  English
 | [http://whoogle.vernccvbvyi5qhfzyqengccj7lkove6bjot2xhh5kajhwvidqafczrad.onion](http://whoogle.vernccvbvyi5qhfzyqengccj7lkove6bjot2xhh5kajhwvidqafczrad.onion/) | 🇺🇸 US | English |
-| [http://whoogle.g4c3eya4clenolymqbpgwz3q3tawoxw56yhzk4vugqrl6dtu3ejvhjid.onion](http://whoogle.g4c3eya4clenolymqbpgwz3q3tawoxw56yhzk4vugqrl6dtu3ejvhjid.onion/) | 🇳🇱 NL | English |
+| [http://whoogle.g4c3eya4clenolymqbpgwz3q3tawoxw56yhzk4vugqrl6dtu3ejvhjid.onion](http://whoogle.g4c3eya4clenolymqbpgwz3q3tawoxw56yhzk4vugqrl6dtu3ejvhjid.onion/) | 🇫🇷 FR | English |
+| [http://whoogle.daturab6drmkhyeia4ch5gvfc2f3wgo6bhjrv3pz6n7kxmvoznlkq4yd.onion](http://whoogle.daturab6drmkhyeia4ch5gvfc2f3wgo6bhjrv3pz6n7kxmvoznlkq4yd.onion/) | 🇩🇪 DE | Multi-choice | |
 
 #### I2P Instances
 
